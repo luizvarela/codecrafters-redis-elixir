@@ -29,6 +29,8 @@ defmodule Server do
   defp serve(socket) do
     socket
     |> read_line()
+    |> parse_line()
+    |> handle_command()
     |> write_line(socket)
 
     serve(socket)
@@ -38,6 +40,14 @@ defmodule Server do
     {:ok, data} = :gen_tcp.recv(socket, 0)
     data
   end
+
+  defp parse_line(data), do: String.split(data, "\r\n")
+
+  defp handle_command([_, _, "ping", _, pong, _]), do: "+#{pong}\r\n"
+
+  defp handle_command([_, _, "ping", _]), do: "+PONG\r\n"
+
+  defp handle_command(data), do: data
 
   defp write_line(line, socket) do
     :gen_tcp.send(socket, line)
